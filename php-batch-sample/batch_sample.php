@@ -6,7 +6,7 @@ ini_set('default_charset', 'UTF-8');
 ini_set('date.timezone', 'Asia/Tokyo');
 
 // variables
-$logfile = "logfile.txt";
+$logfile = "/home/yuma/logfile.txt";
 
 const INFO = "INFO";
 const ERROR = "ERROR";
@@ -19,9 +19,31 @@ logger(INFO, "arg1 = $test_arg1");
 logger(INFO, "arg2 = $test_arg2");
 
 // csv input and output
-$csv_input_file = "sample_input.csv";
-$csv_output_file = "sample_output.csv";
+$csv_input_file = "/home/yuma/sample_input.csv";
+$csv_output_file = "/home/yuma/sample_output.csv";
 $file = new SplFileObject($csv_input_file);
+$file->setFlags(SplFileObject::READ_CSV);
+foreach ($file as $line) {
+    if(!is_null($line[0])){
+        $records[] = $line;
+    }
+}
+$fp = fopen($csv_output_file, 'w');
+foreach ($records as $data) {
+    $line = implode(',', $data);
+    logger(INFO, "load and put csv: $line");
+    fwrite($fp, $line."\n");
+}
+fclose($fp);
+
+// DB access
+define('DB_DATABASE', 'testdb');
+define('DB_USERNAME', 'root');
+define('DB_PASSWORD', 'root');
+define('PDO_DSN', 'mysql:dbhost=localhost;dbname=' . DB_DATABASE);
+
+try {
+    $db = new PDO(PDO_DSN, DB_USERNAME, DB_PASSWORD);
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $stmt = $db->query('select * from testtable');
